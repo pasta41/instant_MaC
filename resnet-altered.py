@@ -31,8 +31,32 @@ print("new_activations:", new_activations)
 resnet_model.layers.pop()
 x = resnet_model.layers[-1].output
 x = Dense(126, activation='softmax', name='fc126')(x)
-newmodel = Model(input=resnet_model.input, output=x)
+newmodel = Model(inputs=resnet_model.input, outputs=x)
 newmodel.layers[175].set_weights([new_weights, new_activations])
+
+original = load_img(os.path.join('dataset-resized-120/training/n02089973-English_foxhound',"n02089973_255.jpg"), target_size=(224, 224))
+
+numpy_image = img_to_array(original)
+#plt.imshow(np.uint8(numpy_image))
+#plt.show()
+#print('numpy array size',numpy_image.shape)
+ 
+# Convert the image / images into batch format
+# expand_dims will add an extra dimension to the data at a particular axis
+# We want the input matrix to the network to be of the form (batchsize, height, width, channels)
+# Thus we add the extra dimension to the axis 0.
+image_batch = np.expand_dims(numpy_image, axis=0)
+print('image batch size', image_batch.shape)
+#plt.imshow(np.uint8(image_batch[0]))
+
+# prepare the image for the VGG model
+processed_image = resnet50.preprocess_input(image_batch.copy())
+ 
+# get the predicted probabilities for each class
+predictions = newmodel.predict(processed_image)
+
+
+print(predictions)
 
 
 exit()
